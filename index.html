@@ -61,6 +61,10 @@ const P=[{n:'iPhone 15 128 GB',p:4299,ims:[im(),im(),im()]},{n:'Galaxy S24 256 G
 let AF='Todos';
 let MV=[],VN=[],NF=[],C=[{w:'b',t:'Olá! Eu sou o atendimento da Snap Smart. Como posso ajudar?'}];
 const qt=p=>p.ims?p.ims.length:p.q;
+const NT=['Nota de produto','Nota de serviço','Sem nota (uso interno ou troca)'],MT=['Troca de aparelho','Devolução','Uso interno da loja','Venda de teste','Outro'],tpf=p=>p.nt||NT[0];let NE=true;
+const sel=(i,p)=>`<select style='min-width:190px' onchange='edt(${i},this.value)'>${NT.map(x=>`<option ${x==tpf(p)?'selected':''}>${x}</option>`).join('')}</select>`;
+function edt(i,v){P[i].nt=v;msg='Tipo fiscal atualizado';r()}
+function sn0(){const L=VN.filter(v=>v.sn);return `<div class='c'><h2>Vendas sem nota fiscal</h2><p class='t'>Toda venda sem nota exige um motivo. Aqui o dono confere todas.</p>${L.length?`<div class='tb'><table><tr><th>Nº</th><th>Produto</th><th>Total</th><th>Motivo</th><th>Vendedor</th></tr>${L.map(v=>`<tr><td>${v.id}</td><td>${E(v.i)}</td><td>${R(v.t)}</td><td>${E(v.sn)}</td><td class='t'>${v.f<0?'Dono':E(FN[v.f].n)}</td></tr>`).join('')}</table></div>`:`<p class='t'>Nenhuma venda sem nota até agora.</p>`}</div>`}
 const hr=()=>new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
 const mv=(t,i,d)=>MV.unshift({h:hr(),t,i,d});
 function r(){
@@ -75,7 +79,7 @@ function est(){
  const un=P.reduce((a,p)=>a+qt(p),0),vl=P.reduce((a,p)=>a+qt(p)*p.p,0);
  return `<div class="st"><div><b>${un}</b><span>itens em estoque</span></div>${U.r=='dono'?`<div><b>${R(vl)}</b><span>valor em estoque</span></div>`:''}<div><b>${VN.length}</b><span>vendas feitas</span></div></div>
 <div class="c"><h2>Registrar entrada</h2><div class="fm"><div><label>Produto</label><input id="en" list="pl" placeholder="Ex.: iPhone 15 128 GB"><datalist id="pl">${P.map(p=>`<option value="${E(p.n)}">`).join('')}</datalist></div><div><label>Preço de venda</label><input id="ep" type="number" min="0" placeholder="0,00"></div><div><label>IMEI (aparelhos)</label><input id="ei" inputmode="numeric" placeholder="15 dígitos"></div><div><label>Quantidade (acessórios)</label><input id="eq" type="number" min="1" value="1"></div><button class="b" onclick="ent()">Registrar entrada</button></div></div>
-<div class="c"><h2>Aparelhos</h2><div class="tb"><table><tr><th>Produto</th><th>Preço (editável)</th><th>Em estoque</th></tr>${P.map((p,i)=>!p.ims?'':`<tr><td>${E(p.n)}</td><td>${U.r=='dono'?`<input type='number' min='0' value='${p.p}' style='width:110px' onchange='edp(${i},this.value)'>`:R(p.p)}</td><td>${qt(p)==0?'<span class="out">Sem estoque</span>':qt(p)+' un.'}</td></tr>`).join('')}</table></div></div>
+<div class="c"><h2>Aparelhos</h2><div class="tb"><table><tr><th>Produto</th><th>Preço (editável)</th><th>Em estoque</th><th>Tipo fiscal</th></tr>${P.map((p,i)=>!p.ims?'':`<tr><td>${E(p.n)}</td><td>${U.r=='dono'?`<input type='number' min='0' value='${p.p}' style='width:110px' onchange='edp(${i},this.value)'>`:R(p.p)}</td><td>${qt(p)==0?'<span class="out">Sem estoque</span>':qt(p)+' un.'}</td><td>${U.r=='dono'?sel(i,p):tpf(p)}</td></tr>`).join('')}</table></div></div>
 <div class="c"><h2>Entradas e saídas</h2>${MV.length?`<div class="tb"><table><tr><th>Hora</th><th>Tipo</th><th>Produto</th><th>Detalhe</th></tr>${MV.slice(0,8).map(m=>`<tr><td class="t">${m.h}</td><td class="${m.t=='Entrada'?'in':'out'}">${m.t}</td><td>${E(m.i)}</td><td class="t">${E(m.d)}</td></tr>`).join('')}</table></div>`:'<p class="t">Nenhuma movimentação ainda. Registre uma entrada ou faça uma venda.</p>'}</div>`;
 }
 function ent(){
@@ -94,7 +98,7 @@ function ac(){
  const cs=cats();if(!cs.includes(AF))AF='Todos';
  const L=P.map((p,i)=>[p,i]).filter(([p])=>!p.ims&&(AF=='Todos'||(p.c||'Outros')==AF));
  return `<div class='c'><h2>Adicionar acessório</h2><div class='fm'><div><label>Nome</label><input id='an' placeholder='Ex.: Capa antichoque iPhone 15'></div><div><label>Categoria</label><input id='ak' list='cl' placeholder='Capas, Som, Suportes…'><datalist id='cl'>${cs.slice(1).map(x=>`<option value='${E(x)}'>`).join('')}</datalist></div><div><label>Preço de venda</label><input id='ap' type='number' min='0' placeholder='0,00'></div><div><label>Quantidade</label><input id='aq' type='number' min='0' value='1'></div><button class='b' onclick='adda()'>Adicionar acessório</button></div></div>
-<div class='c'><h2>Acessórios</h2><div class='ch'>${cs.map((x,j)=>`<button onclick='setf(${j})' ${x==AF?`style='border-color:var(--az);color:var(--az)'`:''}>${E(x)}</button>`).join('')}</div>${L.length?`<div class='tb'><table><tr><th>Nome</th><th>Categoria</th><th>Preço</th><th>Qtd.</th><th></th></tr>${L.map(([p,i])=>`<tr><td><input value='${E(p.n)}' style='min-width:210px' onchange='edn(${i},this.value)'></td><td><input list='cl' value='${E(p.c||'Outros')}' style='width:130px' onchange='edc(${i},this.value)'></td><td><input type='number' min='0' value='${p.p}' style='width:100px' onchange='edp(${i},this.value)'></td><td><input type='number' min='0' value='${p.q}' style='width:80px' onchange='edq(${i},this.value)'></td><td><button class='b' style='padding:8px 12px;background:var(--rd)' onclick='rm(${i})'>Excluir</button></td></tr>`).join('')}</table></div>`:`<p class='t'>Nenhum acessório nesta categoria. Adicione um acima.</p>`}<p class='t'>Altere nome, categoria, preço ou quantidade direto na tabela.</p></div>`;
+<div class='c'><h2>Acessórios</h2><div class='ch'>${cs.map((x,j)=>`<button onclick='setf(${j})' ${x==AF?`style='border-color:var(--az);color:var(--az)'`:''}>${E(x)}</button>`).join('')}</div>${L.length?`<div class='tb'><table><tr><th>Nome</th><th>Categoria</th><th>Preço</th><th>Qtd.</th><th>Tipo fiscal</th><th></th></tr>${L.map(([p,i])=>`<tr><td><input value='${E(p.n)}' style='min-width:210px' onchange='edn(${i},this.value)'></td><td><input list='cl' value='${E(p.c||'Outros')}' style='width:130px' onchange='edc(${i},this.value)'></td><td><input type='number' min='0' value='${p.p}' style='width:100px' onchange='edp(${i},this.value)'></td><td><input type='number' min='0' value='${p.q}' style='width:80px' onchange='edq(${i},this.value)'></td><td>${sel(i,p)}</td><td><button class='b' style='padding:8px 12px;background:var(--rd)' onclick='rm(${i})'>Excluir</button></td></tr>`).join('')}</table></div>`:`<p class='t'>Nenhum acessório nesta categoria. Adicione um acima.</p>`}<p class='t'>Altere nome, categoria, preço ou quantidade direto na tabela.</p></div>`;
 }
 function edn(i,v){v=v.trim();if(!v){err='O nome não pode ficar vazio.';return r()}P[i].n=v;msg='Alteração salva';r()}
 function edc(i,v){P[i].c=v.trim()||'Outros';msg='Categoria atualizada';r()}
@@ -140,24 +144,26 @@ function ven(){
  <div>${ok&&p.ims?`<label>IMEI do aparelho</label><select id="vi">${p.ims.map(i=>`<option>${i}</option>`).join('')}</select>`:`<label>Quantidade</label><input id="vq" type="number" min="1" max="${ok?qt(p):1}" value="1" oninput="tt()">`}</div>
  <div><label>Cliente</label><input id="vc" value="${E(vc)}" oninput="vc=this.value" placeholder="Nome do cliente"></div>
  <div><label>Pagamento</label><select id="vg"><option>Pix</option><option>Débito</option><option>Crédito</option><option>Dinheiro</option></select></div></div>
- <p><label style="display:flex;gap:8px;align-items:center;color:var(--tx)"><input id="vn" type="checkbox" checked style="width:auto"> Emitir nota fiscal</label></p>
+ ${(()=>{const fx=ok&&tpf(p)==NT[2],sn=fx||(U.r=='dono'&&!NE);return `<p><label style="display:flex;gap:8px;align-items:center;color:var(--tx)"><input id="vn" type="checkbox" ${sn?'':'checked'} ${U.r!='dono'||fx?'disabled':''} onchange="NE=this.checked;r()" style="width:auto"> Emitir nota fiscal</label></p>${sn?`<div class="fm" style="margin-bottom:10px"><div><label>Motivo de não emitir nota</label><select id="vm">${MT.map(x=>`<option>${x}</option>`).join('')}</select></div></div>`:''}`})()}
  <div class="tot" id="tt">${ok?R(p.p):'–'}</div><button class="b" onclick="sell()" ${ok?'':'disabled'}>Finalizar venda</button></div>
  <div class="c"><h2>Últimas vendas</h2>${VN.length?`<div class="tb"><table><tr><th>Nº</th><th>Cliente</th><th>Produto</th><th>Total</th><th>Pagamento</th></tr>${VN.filter(v=>U.r=='dono'||v.f==U.i).slice(0,6).map(v=>`<tr><td>${v.id}</td><td>${E(v.c)}</td><td>${E(v.i)}</td><td>${R(v.t)}</td><td class="t">${v.g}</td></tr>`).join('')}</table></div>`:'<p class="t">Nenhuma venda ainda. Finalize a primeira acima.</p>'}</div>`;
 }
 function tt(){const p=P[vp],q=+($('#vq')||{value:1}).value||1;$('#tt').textContent=R(p.p*q)}
 function sell(){
- const p=P[vp];let q=1,i='';
+ const p=P[vp],sn=tpf(p)==NT[2]||(U.r=='dono'&&!NE),mt=sn?($('#vm')||{}).value:'';let q=1,i='';
+ if(sn&&!mt){err='Informe o motivo de não emitir nota.';return r()}
  if(p.ims){i=$('#vi').value;p.ims.splice(p.ims.indexOf(i),1)}
  else{q=Math.max(1,+$('#vq').value||1);if(q>p.q){err='Só há '+p.q+' un. em estoque.';return r()}p.q-=q}
- const f=U.r=='dono'?-1:U.i,v={id:VN.length+1,c:vc.trim()||'Consumidor',i:p.n,t:p.p*q,g:$('#vg').value,d:Date.now(),f,ap:!p.ims,k:f<0?0:p.p*q*(p.ims?FN[f].cp:FN[f].ca)/100};VN.unshift(v);
+ const f=U.r=='dono'?-1:U.i,v={id:VN.length+1,c:vc.trim()||'Consumidor',i:p.n,t:p.p*q,g:$('#vg').value,d:Date.now(),f,ap:!p.ims,k:f<0?0:p.p*q*(p.ims?FN[f].cp:FN[f].ca)/100,sn:mt};VN.unshift(v);
  mv('Saída',p.n,q+' un. · venda '+v.id+(i?' · IMEI '+i:''));
  msg='Venda '+v.id+' finalizada: '+R(v.t)+(v.k?' · sua comissão: '+R(v.k):'');
- if($('#vn').checked){let kk='';for(let j=0;j<44;j++)kk+=Math.floor(Math.random()*10);NF.unshift({no:1000+NF.length+1,c:v.c,i:v.i,t:v.t,k:kk});msg+=' · nota fiscal '+NF[0].no+' emitida (simulada)'}
- vc='';r();
+ if(sn)msg+=' · sem nota ('+mt+')';else{let kk='';for(let j=0;j<44;j++)kk+=Math.floor(Math.random()*10);NF.unshift({no:1000+NF.length+1,c:v.c,i:v.i,t:v.t,k:kk,tp:tpf(p)==NT[1]?'Serviço':'Produto'});msg+=' · nota fiscal '+NF[0].no+' emitida (simulada)'}
+ vc='';NE=true;r();
 }
-function nf(){
+function nf(){return nf0()+sn0()}
+function nf0(){
  return `<div class="nt">Demonstração: as notas abaixo são simuladas. Na versão definitiva, o sistema envia cada venda a um emissor autorizado pela Sefaz e guarda o XML e o PDF da nota.</div>
- <div class="c"><h2>Notas emitidas</h2>${NF.length?`<div class="tb"><table><tr><th>Nº</th><th>Cliente</th><th>Produto</th><th>Total</th><th>Chave de acesso</th><th>Situação</th></tr>${NF.map(n=>`<tr><td>${n.no}</td><td>${E(n.c)}</td><td>${E(n.i)}</td><td>${R(n.t)}</td><td class="t">${n.k.slice(0,12)}…${n.k.slice(-6)}</td><td><span class="tg">Simulada</span></td></tr>`).join('')}</table></div>`:`<p class="t">Nenhuma nota ainda. Faça uma venda com “Emitir nota fiscal” marcado.</p><button class="b" onclick="T='ven';r()">Ir para Vendas</button>`}</div>`;
+ <div class="c"><h2>Notas emitidas</h2>${NF.length?`<div class="tb"><table><tr><th>Nº</th><th>Cliente</th><th>Produto</th><th>Total</th><th>Tipo</th><th>Chave de acesso</th><th>Situação</th></tr>${NF.map(n=>`<tr><td>${n.no}</td><td>${E(n.c)}</td><td>${E(n.i)}</td><td>${R(n.t)}</td><td>${n.tp||'Produto'}</td><td class="t">${n.k.slice(0,12)}…${n.k.slice(-6)}</td><td><span class="tg">Simulada</span></td></tr>`).join('')}</table></div>`:`<p class="t">Nenhuma nota ainda. Faça uma venda com “Emitir nota fiscal” marcado.</p><button class="b" onclick="T='ven';r()">Ir para Vendas</button>`}</div>`;
 }
 function ia(){
  return `<div class="nt">Demonstração com respostas de exemplo. Na versão definitiva, o agente consulta o estoque real e atende pelo WhatsApp da loja.</div>

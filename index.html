@@ -56,7 +56,7 @@ const R=v=>'R$ '+(+v).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFra
 const $=s=>document.querySelector(s);
 const E=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 let k=0;const im=()=>'3569'+String(++k*7919).padStart(11,'0');
-let T='est',msg='',err='',vp=0,vc='';
+let T='est',msg='',err='',vp=0,vc='',U=null,FN=[{n:'Lucas',cp:2,ca:10},{n:'Marina',cp:2,ca:10}],OS=[];
 const P=[{n:'iPhone 15 128 GB',p:4299,ims:[im(),im(),im()]},{n:'Galaxy S24 256 GB',p:3899,ims:[im(),im()]},{n:'Redmi Note 13',p:1399,ims:[im(),im(),im(),im(),im(),im()]},{n:'Moto G54',p:1199,ims:[im(),im(),im(),im()]},{n:'Capa transparente iPhone 15',c:'Capas',p:49,q:12},{n:'Capa antichoque Galaxy S24',c:'Capas',p:59,q:8},{n:'Película de vidro 3D',c:'Películas',p:39,q:20},{n:'Película de hidrogel',c:'Películas',p:29,q:15},{n:'Caixa de som Bluetooth',c:'Som',p:149,q:6},{n:'Fone Bluetooth',c:'Som',p:129,q:8},{n:'Suporte veicular magnético',c:'Suportes',p:59,q:10},{n:'Suporte de mesa articulado',c:'Suportes',p:45,q:7},{n:'Carregador 20W USB-C',c:'Carregadores',p:79,q:15},{n:'Cabo USB-C 1 m',c:'Carregadores',p:29,q:25}];
 let AF='Todos';
 let MV=[],VN=[],NF=[],C=[{w:'b',t:'Olá! Eu sou o atendimento da Snap Smart. Como posso ajudar?'}];
@@ -64,15 +64,18 @@ const qt=p=>p.ims?p.ims.length:p.q;
 const hr=()=>new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
 const mv=(t,i,d)=>MV.unshift({h:hr(),t,i,d});
 function r(){
- $('#nv').innerHTML=[['est','Estoque'],['ac','Acessórios'],['ven','Vendas'],['nf','Notas fiscais'+(NF.length?' ('+NF.length+')':'')],['ia','Atendimento IA']].map(([a,l])=>`<button class="${T==a?'on':''}" onclick="T='${a}';r()">${l}</button>`).join('');
- $('#mn').innerHTML=(msg?`<div class="ok">${msg}</div>`:'')+(err?`<div class="er">${err}</div>`:'')+({est,ac,ven,nf,ia})[T]();
+ if(!U){$('#nv').innerHTML='';$('#mn').innerHTML=lg();return}
+ const D=U.r=='dono',TB=D?[['est','Estoque'],['ac','Acessórios'],['ven','Vendas'],['os','Assistência'],['cm','Comissões'],['nf','Notas fiscais'+(NF.length?' ('+NF.length+')':'')],['ia','Atendimento IA']]:[['ven','Vendas'],['est','Estoque'],['ac','Acessórios'],['os','Assistência'],['cm','Minha comissão']];
+ if(!TB.some(x=>x[0]==T))T=TB[0][0];
+ $('#nv').innerHTML=TB.map(([a,l])=>`<button class="${T==a?'on':''}" onclick="T='${a}';r()">${l}</button>`).join('')+`<button onclick="out()" style="margin-left:auto">Sair · ${D?'Dono':E(FN[U.i].n)}</button>`;
+ $('#mn').innerHTML=(msg?`<div class="ok">${msg}</div>`:'')+(err?`<div class="er">${err}</div>`:'')+({est,ac,ven,nf,ia,os,cm})[T]();
  msg=err='';if(T=='ia')cd();
 }
 function est(){
  const un=P.reduce((a,p)=>a+qt(p),0),vl=P.reduce((a,p)=>a+qt(p)*p.p,0);
- return `<div class="st"><div><b>${un}</b><span>itens em estoque</span></div><div><b>${R(vl)}</b><span>valor em estoque</span></div><div><b>${VN.length}</b><span>vendas feitas</span></div></div>
+ return `<div class="st"><div><b>${un}</b><span>itens em estoque</span></div>${U.r=='dono'?`<div><b>${R(vl)}</b><span>valor em estoque</span></div>`:''}<div><b>${VN.length}</b><span>vendas feitas</span></div></div>
 <div class="c"><h2>Registrar entrada</h2><div class="fm"><div><label>Produto</label><input id="en" list="pl" placeholder="Ex.: iPhone 15 128 GB"><datalist id="pl">${P.map(p=>`<option value="${E(p.n)}">`).join('')}</datalist></div><div><label>Preço de venda</label><input id="ep" type="number" min="0" placeholder="0,00"></div><div><label>IMEI (aparelhos)</label><input id="ei" inputmode="numeric" placeholder="15 dígitos"></div><div><label>Quantidade (acessórios)</label><input id="eq" type="number" min="1" value="1"></div><button class="b" onclick="ent()">Registrar entrada</button></div></div>
-<div class="c"><h2>Aparelhos</h2><div class="tb"><table><tr><th>Produto</th><th>Preço (editável)</th><th>Em estoque</th></tr>${P.map((p,i)=>!p.ims?'':`<tr><td>${E(p.n)}</td><td><input type='number' min='0' value='${p.p}' style='width:110px' onchange='edp(${i},this.value)'></td><td>${qt(p)==0?'<span class="out">Sem estoque</span>':qt(p)+' un.'}</td></tr>`).join('')}</table></div></div>
+<div class="c"><h2>Aparelhos</h2><div class="tb"><table><tr><th>Produto</th><th>Preço (editável)</th><th>Em estoque</th></tr>${P.map((p,i)=>!p.ims?'':`<tr><td>${E(p.n)}</td><td>${U.r=='dono'?`<input type='number' min='0' value='${p.p}' style='width:110px' onchange='edp(${i},this.value)'>`:R(p.p)}</td><td>${qt(p)==0?'<span class="out">Sem estoque</span>':qt(p)+' un.'}</td></tr>`).join('')}</table></div></div>
 <div class="c"><h2>Entradas e saídas</h2>${MV.length?`<div class="tb"><table><tr><th>Hora</th><th>Tipo</th><th>Produto</th><th>Detalhe</th></tr>${MV.slice(0,8).map(m=>`<tr><td class="t">${m.h}</td><td class="${m.t=='Entrada'?'in':'out'}">${m.t}</td><td>${E(m.i)}</td><td class="t">${E(m.d)}</td></tr>`).join('')}</table></div>`:'<p class="t">Nenhuma movimentação ainda. Registre uma entrada ou faça uma venda.</p>'}</div>`;
 }
 function ent(){
@@ -87,6 +90,7 @@ function ent(){
 function cats(){return ['Todos',...new Set(P.filter(p=>!p.ims).map(p=>p.c||'Outros'))]}
 function setf(j){AF=cats()[j];r()}
 function ac(){
+ if(U.r!='dono')return acv();
  const cs=cats();if(!cs.includes(AF))AF='Todos';
  const L=P.map((p,i)=>[p,i]).filter(([p])=>!p.ims&&(AF=='Todos'||(p.c||'Outros')==AF));
  return `<div class='c'><h2>Adicionar acessório</h2><div class='fm'><div><label>Nome</label><input id='an' placeholder='Ex.: Capa antichoque iPhone 15'></div><div><label>Categoria</label><input id='ak' list='cl' placeholder='Capas, Som, Suportes…'><datalist id='cl'>${cs.slice(1).map(x=>`<option value='${E(x)}'>`).join('')}</datalist></div><div><label>Preço de venda</label><input id='ap' type='number' min='0' placeholder='0,00'></div><div><label>Quantidade</label><input id='aq' type='number' min='0' value='1'></div><button class='b' onclick='adda()'>Adicionar acessório</button></div></div>
@@ -105,6 +109,30 @@ function adda(){
  if(q)mv('Entrada',n,'+'+q+' un.');
  msg='Acessório salvo: '+E(n);r();
 }
+const mo=d=>{const a=new Date(d),n=new Date();return a.getMonth()==n.getMonth()&&a.getFullYear()==n.getFullYear()},mk=d=>{const a=new Date(d);return a.getFullYear()*12+a.getMonth()},sm=(L,f)=>L.reduce((a,x)=>a+f(x),0);
+function lg(){return `<div class='c' style='max-width:460px;margin:30px auto'><h2>Entrar no sistema</h2><p class='t'>Na versão definitiva, cada pessoa entra com login e senha.</p><button class='b' style='width:100%' onclick='ldn()'>Entrar como dono</button><p><label>Ou entre como funcionário</label><select id='lf'>${FN.map((f,i)=>`<option value='${i}'>${E(f.n)}</option>`).join('')}</select></p><button class='b' style='width:100%;background:transparent;border:1px solid var(--ln)' onclick='lgf()'>Entrar como funcionário</button></div>`}
+function ldn(){U={r:'dono'};T='est';r()}
+function lgf(){U={r:'func',i:+$('#lf').value};T='ven';r()}
+function out(){U=null;r()}
+function acv(){const L=P.filter(p=>!p.ims);return `<div class='c'><h2>Acessórios</h2><div class='tb'><table><tr><th>Nome</th><th>Categoria</th><th>Preço</th><th>Qtd.</th></tr>${L.map(p=>`<tr><td>${E(p.n)}</td><td class='t'>${E(p.c||'Outros')}</td><td>${R(p.p)}</td><td>${p.q}</td></tr>`).join('')}</table></div><p class='t'>Só o dono altera preços e produtos.</p></div>`}
+function cm(){
+ if(U.r!='dono'){const F=FN[U.i],L=VN.filter(v=>v.f==U.i&&mo(v.d));
+ return `<div class='st'><div><b>${R(sm(L,v=>v.k))}</b><span>sua comissão no mês</span></div><div><b>${R(sm(L,v=>v.t))}</b><span>vendido no mês</span></div><div><b>${L.length}</b><span>vendas no mês</span></div></div><div class='c'><h2>Suas vendas do mês</h2><p class='t'>Você recebe ${F.cp}% sobre celulares e ${F.ca}% sobre acessórios.</p>${L.length?`<div class='tb'><table><tr><th>Produto</th><th>Tipo</th><th>Total</th><th>Comissão</th></tr>${L.map(v=>`<tr><td>${E(v.i)}</td><td class='t'>${v.ap?'Acessório':'Celular'}</td><td>${R(v.t)}</td><td class='in'>${R(v.k)}</td></tr>`).join('')}</table></div>`:`<p class='t'>Nenhuma venda sua neste mês ainda.</p>`}</div>`}
+ const T0=FN.map((F,i)=>{const L=VN.filter(v=>v.f==i&&mo(v.d));return {F,i,c:sm(L.filter(v=>!v.ap),v=>v.t),a:sm(L.filter(v=>v.ap),v=>v.t),k:sm(L,v=>v.k)}});
+ return `<div class='st'><div><b>${R(sm(T0,x=>x.k))}</b><span>comissões do mês</span></div><div><b>${R(sm(T0,x=>x.c+x.a))}</b><span>vendido pela equipe no mês</span></div></div><div class='c'><h2>Equipe e comissões</h2><p class='t'>Toda venda feita por um funcionário gera a comissão dele automaticamente.</p><div class='tb'><table><tr><th>Funcionário</th><th>% celular</th><th>% acessório</th><th>Celulares</th><th>Acessórios</th><th>Comissão do mês</th></tr>${T0.map(x=>`<tr><td><input value='${E(x.F.n)}' style='min-width:120px' onchange='efn(${x.i},this.value)'></td><td><input type='number' min='0' step='0.5' value='${x.F.cp}' style='width:80px' onchange='efp(${x.i},this.value)'></td><td><input type='number' min='0' step='0.5' value='${x.F.ca}' style='width:80px' onchange='efa(${x.i},this.value)'></td><td>${R(x.c)}</td><td>${R(x.a)}</td><td class='in'><b>${R(x.k)}</b></td></tr>`).join('')}</table></div></div><div class='c'><h2>Novo funcionário</h2><div class='fm'><div><label>Nome</label><input id='fn'></div><div><label>% celular</label><input id='fc' type='number' min='0' step='0.5' value='2'></div><div><label>% acessório</label><input id='fa' type='number' min='0' step='0.5' value='10'></div><button class='b' onclick='addf()'>Adicionar</button></div></div>`}
+function efn(i,v){FN[i].n=v.trim()||FN[i].n;msg='Alteração salva';r()}
+function efp(i,v){FN[i].cp=Math.max(0,+v||0);msg='Comissão atualizada';r()}
+function efa(i,v){FN[i].ca=Math.max(0,+v||0);msg='Comissão atualizada';r()}
+function addf(){const n=$('#fn').value.trim();if(!n){err='Informe o nome do funcionário.';return r()}FN.push({n,cp:Math.max(0,+$('#fc').value||0),ca:Math.max(0,+$('#fa').value||0)});msg='Funcionário adicionado: '+E(n);r()}
+function os(){
+ const D=U.r=='dono',M=OS.filter(o=>o.st=='Entregue'&&mo(o.d)),fat=sm(M,o=>o.v),ab=OS.filter(o=>o.st!='Entregue');let h='';
+ if(D){const c=mk(Date.now()),ms=[5,4,3,2,1,0].map(j=>({l:new Date(Math.floor((c-j)/12),(c-j)%12,1).toLocaleDateString('pt-BR',{month:'short'}),v:sm(OS.filter(o=>o.st=='Entregue'&&mk(o.d)==c-j),o=>o.v)})),mx=Math.max(...ms.map(m=>m.v),1);
+ h=`<div class='st'><div><b>${R(fat)}</b><span>rendimento no mês</span></div><div><b>${R(fat-sm(M,o=>o.pc))}</b><span>lucro, sem o custo das peças</span></div><div><b>${M.length}</b><span>consertos entregues</span></div><div><b>${R(M.length?fat/M.length:0)}</b><span>valor médio por conserto</span></div><div><b>${ab.length}</b><span>em andamento (${R(sm(ab,o=>o.v))} a receber)</span></div></div><div class='c'><h2>Rendimento por mês</h2><div style='display:flex;align-items:flex-end;gap:10px;height:180px'>${ms.map(m=>`<div style='flex:1;text-align:center;font-size:12px'><div class='t'>${R(m.v).replace(',00','')}</div><div style='height:${Math.round(m.v/mx*110)}px;background:var(--az);border-radius:6px 6px 0 0;min-height:2px'></div><div class='t'>${m.l}</div></div>`).join('')}</div><p class='t'>O valor entra no rendimento do mês em que o conserto é entregue.</p></div>`}
+ return h+`<div class='c'><h2>Nova ordem de serviço</h2><div class='fm'><div><label>Cliente</label><input id='oc'></div><div><label>Aparelho</label><input id='oa' placeholder='Ex.: iPhone 12'></div><div><label>Serviço</label><input id='osv' list='sl' placeholder='Troca de tela'><datalist id='sl'><option value='Troca de tela'><option value='Troca de bateria'><option value='Conector de carga'><option value='Vidro traseiro'><option value='Formatação'></datalist></div><div><label>Valor cobrado</label><input id='ov' type='number' min='0'></div>${D?`<div><label>Custo da peça</label><input id='op' type='number' min='0'></div>`:''}<button class='b' onclick='addo()'>Abrir ordem</button></div></div><div class='c'><h2>Ordens de serviço</h2><div class='tb'><table><tr><th>Nº</th><th>Cliente</th><th>Aparelho</th><th>Serviço</th><th>Valor</th><th>Situação</th></tr>${OS.slice().sort((a,b)=>b.id-a.id).slice(0,10).map(o=>`<tr><td>${o.id}</td><td>${E(o.c)}</td><td>${E(o.a)}</td><td>${E(o.s)}</td><td>${R(o.v)}</td><td><select style='width:130px' onchange='stt(${o.id},this.value)'>${['Aberta','Pronta','Entregue'].map(s=>`<option ${s==o.st?'selected':''}>${s}</option>`).join('')}</select></td></tr>`).join('')}</table></div></div>`}
+function addo(){const c=$('#oc').value.trim(),a=$('#oa').value.trim(),s=$('#osv').value.trim(),v=Math.max(0,+$('#ov').value||0),pc=Math.max(0,+(($('#op')||{}).value)||0);
+ if(!c||!a||!s){err='Preencha cliente, aparelho e serviço.';return r()}
+ OS.unshift({id:Math.max(0,...OS.map(o=>o.id))+1,c,a,s,v,pc,st:'Aberta',d:null});msg='Ordem de serviço aberta: '+E(a);r()}
+function stt(id,v){const o=OS.find(x=>x.id==id);o.st=v;o.d=v=='Entregue'?Date.now():null;msg=v=='Entregue'?'Conserto entregue e somado ao rendimento do mês':'Situação atualizada';r()}
 function ven(){
  if(!P[vp]||qt(P[vp])==0){vp=Math.max(0,P.findIndex(p=>qt(p)>0))}
  const p=P[vp],ok=p&&qt(p)>0;
@@ -114,16 +142,16 @@ function ven(){
  <div><label>Pagamento</label><select id="vg"><option>Pix</option><option>Débito</option><option>Crédito</option><option>Dinheiro</option></select></div></div>
  <p><label style="display:flex;gap:8px;align-items:center;color:var(--tx)"><input id="vn" type="checkbox" checked style="width:auto"> Emitir nota fiscal</label></p>
  <div class="tot" id="tt">${ok?R(p.p):'–'}</div><button class="b" onclick="sell()" ${ok?'':'disabled'}>Finalizar venda</button></div>
- <div class="c"><h2>Últimas vendas</h2>${VN.length?`<div class="tb"><table><tr><th>Nº</th><th>Cliente</th><th>Produto</th><th>Total</th><th>Pagamento</th></tr>${VN.slice(0,6).map(v=>`<tr><td>${v.id}</td><td>${E(v.c)}</td><td>${E(v.i)}</td><td>${R(v.t)}</td><td class="t">${v.g}</td></tr>`).join('')}</table></div>`:'<p class="t">Nenhuma venda ainda. Finalize a primeira acima.</p>'}</div>`;
+ <div class="c"><h2>Últimas vendas</h2>${VN.length?`<div class="tb"><table><tr><th>Nº</th><th>Cliente</th><th>Produto</th><th>Total</th><th>Pagamento</th></tr>${VN.filter(v=>U.r=='dono'||v.f==U.i).slice(0,6).map(v=>`<tr><td>${v.id}</td><td>${E(v.c)}</td><td>${E(v.i)}</td><td>${R(v.t)}</td><td class="t">${v.g}</td></tr>`).join('')}</table></div>`:'<p class="t">Nenhuma venda ainda. Finalize a primeira acima.</p>'}</div>`;
 }
 function tt(){const p=P[vp],q=+($('#vq')||{value:1}).value||1;$('#tt').textContent=R(p.p*q)}
 function sell(){
  const p=P[vp];let q=1,i='';
  if(p.ims){i=$('#vi').value;p.ims.splice(p.ims.indexOf(i),1)}
  else{q=Math.max(1,+$('#vq').value||1);if(q>p.q){err='Só há '+p.q+' un. em estoque.';return r()}p.q-=q}
- const v={id:VN.length+1,c:vc.trim()||'Consumidor',i:p.n,t:p.p*q,g:$('#vg').value};VN.unshift(v);
+ const f=U.r=='dono'?-1:U.i,v={id:VN.length+1,c:vc.trim()||'Consumidor',i:p.n,t:p.p*q,g:$('#vg').value,d:Date.now(),f,ap:!p.ims,k:f<0?0:p.p*q*(p.ims?FN[f].cp:FN[f].ca)/100};VN.unshift(v);
  mv('Saída',p.n,q+' un. · venda '+v.id+(i?' · IMEI '+i:''));
- msg='Venda '+v.id+' finalizada: '+R(v.t);
+ msg='Venda '+v.id+' finalizada: '+R(v.t)+(v.k?' · sua comissão: '+R(v.k):'');
  if($('#vn').checked){let kk='';for(let j=0;j<44;j++)kk+=Math.floor(Math.random()*10);NF.unshift({no:1000+NF.length+1,c:v.c,i:v.i,t:v.t,k:kk});msg+=' · nota fiscal '+NF[0].no+' emitida (simulada)'}
  vc='';r();
 }
@@ -147,5 +175,10 @@ function rs(t){
  if(/horario|aberto|funciona|endereco/.test(n))return 'Atendemos de segunda a sábado, das 9h às 18h.';
  return 'Não tenho essa informação agora. Vou chamar um atendente da loja para continuar com você.';
 }
+const dm=(b,d)=>{const n=new Date();return new Date(n.getFullYear(),n.getMonth()-b,d,12).getTime()};
+{const cl=['Carlos','Ana','João','Paula','Rafael'],ap=['iPhone 12','Redmi Note 11','Galaxy A54','Moto G54','iPhone 13'],sv=['Troca de tela','Troca de bateria','Conector de carga','Vidro traseiro','Formatação'];
+[[690,380,0],[180,70,0],[320,140,0],[150,45,1],[890,520,1],[210,80,1],[260,90,1],[540,300,2],[170,60,2],[390,160,2],[230,95,3],[760,430,3],[180,60,4],[480,210,4],[330,130,5]].forEach(([v,pc,b],i)=>OS.push({id:i+1,c:cl[i%5],a:ap[(i+2)%5],s:sv[i%5],v,pc,st:'Entregue',d:dm(b,3+i%20)}));
+OS.push({id:16,c:'Marcos',a:'Galaxy A54',s:'Conector de carga',v:150,pc:45,st:'Pronta',d:null},{id:17,c:'Júlia',a:'iPhone 13',s:'Troca de bateria',v:280,pc:110,st:'Aberta',d:null});
+[[0,'Redmi Note 13',1399,0,2],[0,'Capa antichoque Galaxy S24',59,1,3],[1,'iPhone 15 128 GB',4299,0,4],[1,'Caixa de som Bluetooth',149,1,5],[0,'Moto G54',1199,0,6],[1,'Película de vidro 3D',39,1,6]].forEach(([f,i,t,a,d])=>VN.unshift({id:VN.length+1,c:'Cliente',i,t,g:'Pix',d:dm(0,d),f,ap:!!a,k:t*(a?FN[f].ca:FN[f].cp)/100}))}
 r();
 </script></body></html>
